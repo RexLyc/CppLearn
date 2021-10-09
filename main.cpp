@@ -21,7 +21,7 @@ void getSize(sizeTest &t) {
 #define SORT_EXAMPLE
 #ifdef SORT_EXAMPLE
 #include"non_comparison_sort.hpp"
-#include"heap_sort.hpp"
+#include"comparison_sort.hpp"
 void sort_example() {
 	using namespace lyc_algorithm;
 	std::vector<int> input = { 0,1,3,2,4 ,1,0,1,3,2,4 ,-1 };
@@ -88,8 +88,106 @@ void graph_example() {
 		}
 		std::cout << std::endl;
 	}
+
+	// spanning tree
+	minimum_spanning_tree* myTree = new kruskal;
+	std::vector<edge> graphEdges;
+	graphEdges.push_back(edge(0, 1, 1));
+	graphEdges.push_back(edge(1, 4, 1));
+	graphEdges.push_back(edge(1, 3, 2));
+	graphEdges.push_back(edge(3, 5, 1));
+	graphEdges.push_back(edge(2, 3, 1));
+	graphEdges.push_back(edge(0, 2, 2));
+	graphEdges.push_back(edge(2, 4, 2));
+	graphEdges.push_back(edge(4, 5, 3));
+	std::cout << myTree->get_minimum_spanning_tree(graphEdges) << std::endl;
+	delete myTree;
+	myTree = new prim;
+	std::cout << myTree->get_minimum_spanning_tree(graphEdges) << std::endl;
+
+	// shortest path
+	graph_adjacent_map graph_map;
+	graph_map.nodes[0] = { {1,1} ,{2,2},{3,3} };
+	graph_map.nodes[1] = { {2,1} ,{3,4},{4,4} };
+	graph_map.nodes[2] = { {3,1} ,{4,2},{4,13} };
+	graph_map.nodes[3] = { {4,1} ,{2,2},{1,3} };
+	graph_map.nodes[4] = { {0,1} ,{2,2},{3,3} };
+	try
+	{
+		auto result = dijkstra(graph_map, 4);
+		for (auto& t : result) {
+			std::cout << "distance to " << t.first << " = " << t.second << std::endl;
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+
+	graph_adjacent graph;
+	graph.nodes.push_back(node_adjacent(0, { {1,1} ,{2,2},{3,3} }));
+	graph.nodes.push_back(node_adjacent(1, { {2,1} ,{3,4},{4,4} }));
+	graph.nodes.push_back(node_adjacent(2, { {3,1} ,{4,2},{4,13} }));
+	graph.nodes.push_back(node_adjacent(3, { {4,1} ,{2,2},{1,3} }));
+	graph.nodes.push_back(node_adjacent(4, { {0,1} ,{2,2},{3,3} }));
+	try
+	{
+		auto result = bellman_ford_shortest_path(graph, 4);
+		for (auto& t : result) {
+			std::cout << "distance to " << t.first << " = " << t.second << std::endl;
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+
+	// floyd
+	{
+		std::vector<std::vector<int>> graph = { {0,1,4,3},{1,0,4,5},{-1,2,0,3},{2,4,3,0} };
+		std::vector<std::vector<int>> dst = graph;
+		for (int k = 0; k != graph.size(); ++k) {
+			for (int i = 0; i != graph.size(); ++i) {
+				if (i == k)
+					continue;
+				for (int j = 0; j != graph.size(); ++j) {
+					if (i == j || k == j)
+						continue;
+					dst[i][j] = std::min(dst[i][j], dst[i][k] + dst[k][j]);
+				}
+			}
+		}
+		for (int i = 0; i != dst.size(); ++i) {
+			for (int j = 0; j != dst.size(); ++j) {
+				std::cout << dst[i][j] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+	// jonhson
+	{
+		graph_adjacent_map graph_map;
+		graph_map.nodes[0] = { {1,1} ,{2,2},{3,3} };
+		graph_map.nodes[1] = { {2,1} ,{3,4},{4,4} };
+		graph_map.nodes[2] = { {3,1} ,{4,2},{0,-2} };
+		graph_map.nodes[3] = { {4,1} ,{2,2},{1,3} };
+		graph_map.nodes[4] = { {0,1} ,{2,2},{3,3} };
+		auto result = johnson(graph_map);
+		for (auto& node : result) {
+			std::cout << "from node: " << node.first << std::endl;
+			for (auto& end : node.second) {
+				std::cout << "    to node: " << end.first << " -> " << end.second << std::endl;
+			}
+		}
+	}
 }
 #endif // GRAPH_EXAMPLE
+
+#define ORDER_STATISTIC
+#ifdef ORDER_STATISTIC
+#include"order_statistic.hpp"
+
+#endif // ORDER_STATISTIC
 
 
 int main() {

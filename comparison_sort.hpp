@@ -28,4 +28,23 @@ namespace lyc_algorithm {
 			heapify(input, 0, input.size() - i);
 		}
 	}
+
+	//很妙的单向扫描写法（循环不变式：i的下一个是大于pivot）
+	template<typename ForwardIt>
+	void quick_sort(ForwardIt begin, ForwardIt end) {
+		//partition
+		auto i = begin, j = begin + 1;
+		auto pivot = *begin;
+		for (; j != end; ++j) {
+			if (*j < pivot) {
+				std::iter_swap(++i, j);
+			}
+		}
+		std::iter_swap(i, begin);
+		//递归
+		if (begin < i)
+			quick_sort(begin, i);
+		if (i + 1 < end)
+			quick_sort(i + 1, end);
+	}
 }

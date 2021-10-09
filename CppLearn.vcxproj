@@ -143,8 +143,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="graph_algorithm.hpp" />
-    <ClInclude Include="heap_sort.hpp" />
+    <ClInclude Include="comparison_sort.hpp" />
+    <ClInclude Include="graph_structure.hpp" />
     <ClInclude Include="non_comparison_sort.hpp" />
+    <ClInclude Include="order_statistic.hpp" />
+    <ClInclude Include="tree_structure.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

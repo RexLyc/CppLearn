@@ -4,6 +4,7 @@
 #include<unordered_set>
 #include<iostream>
 #include<stack>
+#include"graph_structure.hpp"
 namespace lyc_algorithm {
 
 	std::pair<std::size_t, std::size_t> operator+(const std::pair<std::size_t, std::size_t>& a, const std::pair<std::size_t, std::size_t>& b) {
@@ -204,5 +205,191 @@ namespace lyc_algorithm {
 		std::cout << std::endl << "========================" << std::endl;
 		auto rAdj = reverseGraph(adj);
 		getSCC(rAdj, sccGraph, finishOrder);
+	}
+
+	class minimum_spanning_tree {
+	public:
+		virtual int get_minimum_spanning_tree(const std::vector<edge>& graphEdges) = 0;
+	};
+
+	class kruskal : public minimum_spanning_tree {
+	public:
+		int get_minimum_spanning_tree(const std::vector<edge>& graphEdges)
+		{
+			std::vector<edge> graph(graphEdges.begin(), graphEdges.end());
+			std::sort(graph.begin(), graph.end());
+			union_set vertexSet;
+			for (auto& t : graph) {
+				vertexSet.set_parent(t.begin, t.begin);
+				vertexSet.set_parent(t.end, t.end);
+			}
+			std::size_t edge_count = 0;
+			int weight_sum = 0;
+			for (auto& t : graph) {
+				if (!vertexSet.union_check(t.begin, t.end)) {
+					edge_count++;
+					weight_sum += t.weight;
+					vertexSet.make_union(t.begin, t.end);
+				}
+				if (edge_count == vertexSet.size()) {
+					break;
+				}
+			}
+			return weight_sum;
+		}
+	};
+
+	class prim : public minimum_spanning_tree {
+	public:
+		int get_minimum_spanning_tree(const std::vector<edge>& graphEdges)
+		{
+			std::priority_queue<distance_to_node
+				, std::vector<distance_to_node>
+				, min_heap<distance_to_node>> distanceQueue;
+			std::unordered_map<node_id, std::unordered_map<node_id, int>> adj;
+			for (auto& t : graphEdges) {
+				adj[t.begin][t.end] = t.weight;
+				adj[t.end][t.begin] = t.weight;
+			}
+			std::unordered_set<node_id> seen;
+			distanceQueue.push(distance_to_node(0, graphEdges.front().begin));
+			std::size_t edge_count = 0;
+			int weight_sum = 0;
+			while (!distanceQueue.empty() && edge_count != adj.size()) {
+				distance_to_node current = distanceQueue.top();
+				distanceQueue.pop();
+				//std::cout << seen.find(current.node) <<" "<< seen.end() << std::endl;
+				if (seen.find(current.node) == seen.end()) {
+					seen.insert(current.node);
+					edge_count++;
+					weight_sum += current.weight;
+					for (auto& t : adj[current.node]) {
+						if (seen.find(t.first) == seen.end()) {
+							distanceQueue.push(distance_to_node(t.second, t.first));
+						}
+					}
+				}
+			}
+			return weight_sum;
+		}
+	};
+
+
+	std::unordered_map<node_id, edge_weight> dijkstra(const graph_adjacent_map& graph, node_id source) {
+		std::unordered_map<node_id, edge_weight> dist;
+		std::priority_queue<edge_adjacent, std::vector<edge_adjacent>, min_heap<edge_adjacent>> node_distance;
+		std::unordered_set<node_id> arrived_nodes;
+		node_distance.push(edge_adjacent(source, 0));
+		dist[source] = 0;
+		while (!node_distance.empty()) {
+			auto node = node_distance.top();
+			node_distance.pop();
+			if (arrived_nodes.find(node.end) != arrived_nodes.end()) {
+				continue;
+			}
+			// new node
+			arrived_nodes.insert(node.end);
+			for (auto edge : graph.nodes.find(node.end)->second) {
+				if (dist.find(edge.end) == dist.end()
+					|| dist.find(edge.end)->second > edge.weight + dist.find(node.end)->second) { // relax
+					dist[edge.end] = edge.weight + dist.find(node.end)->second;
+					node_distance.push(edge_adjacent(edge.end, dist[edge.end]));
+				}
+			}
+		}
+		return dist;
+	}
+
+	std::unordered_map<node_id, edge_weight> bellman_ford_shortest_path(const graph_adjacent& graph, node_id source) {
+		if (graph.nodes.empty()) {
+			throw std::exception("empty graph");
+		}
+		std::unordered_map<node_id, edge_weight> dist;
+		dist[source] = 0;
+		for (std::size_t i = 1; i != graph.nodes.size(); ++i) {
+			for (auto& node : graph.nodes) {
+				if (dist.find(node.begin) == dist.end()) { // the begin of this edge is reachable
+					continue;
+				}
+				for (auto& edge : node.edges) {
+					if (dist.find(edge.end) == dist.end()
+						|| dist.find(edge.end)->second > edge.weight + dist.find(node.begin)->second) { // relax
+						dist[edge.end] = edge.weight + dist.find(node.begin)->second;
+					}
+				}
+			}
+		}
+		// check if has false 
+		for (auto& node : graph.nodes) {
+			for (auto& edge : node.edges) {
+				if (dist.find(edge.end)->second > edge.weight + dist.find(node.begin)->second) {
+					throw std::exception("bad graph");
+				}
+			}
+		}
+		return dist;
+	}
+
+	std::unordered_map<node_id, edge_weight> bellman_ford_shortest_path(const graph_adjacent_map& graph, node_id source) {
+		if (graph.nodes.empty()) {
+			throw std::exception("empty graph");
+		}
+		std::unordered_map<node_id, edge_weight> dist;
+		dist[source] = 0;
+		for (std::size_t i = 1; i != graph.nodes.size(); ++i) {
+			for (auto& node : graph.nodes) {
+				if (dist.find(node.first) == dist.end()) { // the begin of this edge is reachable
+					continue;
+				}
+				for (auto& edge : node.second) {
+					if (dist.find(edge.end) == dist.end()
+						|| dist.find(edge.end)->second > edge.weight + dist.find(node.first)->second) { // relax
+						dist[edge.end] = edge.weight + dist.find(node.first)->second;
+					}
+				}
+			}
+		}
+		// check if has false 
+		for (auto& node : graph.nodes) {
+			for (auto& edge : node.second) {
+				if (dist.find(edge.end)->second > edge.weight + dist.find(node.first)->second) {
+					throw std::exception("bad graph");
+				}
+			}
+		}
+		return dist;
+	}
+
+
+	std::unordered_map<node_id, std::unordered_map<node_id, edge_weight>> johnson(const graph_adjacent_map& graph) {
+		// create G'
+		graph_adjacent_map graph_ = graph;
+		node_id id;
+		for (id = 0; id <= graph_.nodes.size(); ++id) {
+			if (graph_.nodes.find(id) == graph_.nodes.end()) {
+				for (auto& t : graph.nodes) {
+					graph_.nodes[id].push_back(edge_adjacent(t.first, 0));
+				}
+				break;
+			}
+		}
+		auto h = bellman_ford_shortest_path(graph_, id);
+		// config w' base on h & w
+		for (auto& node : graph_.nodes) {
+			for (auto& edge : node.second) {
+				edge.weight = edge.weight + h[node.first] - h[edge.end];
+			}
+		}
+		std::unordered_map < node_id, std::unordered_map<node_id, edge_weight>> dist;
+		for (auto& node : graph_.nodes) {
+			if (node.first == id)
+				continue;
+			auto result = dijkstra(graph_, node.first);
+			for (auto& dist : result) {
+				dist.second = dist.second - h[node.first] + h[dist.first];
+			}
+			dist[node.first] = result;
+		}
+		return dist;
 	}
 }
