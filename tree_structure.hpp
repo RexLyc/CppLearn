@@ -107,12 +107,29 @@ namespace lyc_algorithm {
 	}
 
 	template<typename T>
+	void redblack_tree_insert_fix(redblack_tree_node<T>* new_node) {
+
+	}
+
+	template<typename T>
 	void insert(redblack_tree_node<T>**root, const T& data) {
 		if (!*root) {
 			*root = new redblack_tree_node<T>(nullptr, data, NODE_COLOR::BLACK);
 		}
 		redblack_tree_node<T>* insert_successor = reinterpret_cast<redblack_tree_node<T>*>(successor(*root, data));
 		// to be continue
-		
+		if (insert_successor->data == data) {
+			insert_successor->times++;
+		}
+		else {
+			redblack_tree_node<T>* new_node = new redblack_tree_node<T>(insert_successor, data);
+			if (insert_successor->data < data) {
+				insert_successor->right = new_node;
+			}
+			else {
+				insert_successor->left = new_node;
+			}
+			redblack_tree_insert_fix(new_node);
+		}
 	}
 }
