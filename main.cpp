@@ -189,6 +189,52 @@ void graph_example() {
 
 #endif // ORDER_STATISTIC
 
+#define TREE_EXAMPLE
+#ifdef TREE_EXAMPLE
+#include"tree_structure.hpp"
+template<typename T>
+void rbtree_delete_test(lyc_algorithm::redblack_tree_node<T>**root, const T&data) {
+	using namespace lyc_algorithm;
+	std::vector<binary_tree_node<T>*> order_list;
+	inorder<T>(*root, order_list);
+	//bool result = redblack_tree_delete<T>(root, data);
+	if (redblack_tree_delete<T>(root, data)) {
+		for (auto& t : order_list) {
+			std::cout << t->data << " " << enum_trans(reinterpret_cast<redblack_tree_node<T>*>(t)->color)  << std::endl;
+		}
+		std::cout << std::endl;
+	}
+	else {
+		std::cout << data << " not exist in rbtree" << std::endl;
+	}
+}
+
+void tree_examples() {
+	using namespace lyc_algorithm;
+	redblack_tree_node<int>* root = nullptr;
+	redblack_tree_insert(&root, 10);
+	redblack_tree_insert(&root, 11);
+	redblack_tree_insert(&root, 1);
+	redblack_tree_insert(&root, 5);
+	redblack_tree_insert(&root, -3);
+	redblack_tree_insert(&root, 0);
+	redblack_tree_insert(&root, 17);
+	redblack_tree_insert(&root, 14);
+	redblack_tree_insert(&root, 13);
+	redblack_tree_insert(&root, 12);
+	std::vector<binary_tree_node<int>*> order_list;
+	inorder(root, order_list);
+	std::cout << "======tree_examples======" << std::endl;
+	for (auto& t : order_list) {
+		std::cout << t->data << " " << enum_trans(reinterpret_cast<redblack_tree_node<int>*>(t)->color) << std::endl;;
+	}
+	std::cout << std::endl;
+	std::cout << "====rbtree_delete====" << std::endl;
+	rbtree_delete_test(&root, 233);
+	rbtree_delete_test(&root, -3);
+}
+#endif // TREE_EXAMPLE
+
 
 int main() {
 
@@ -200,6 +246,9 @@ int main() {
 	graph_example();
 #endif
 
+#ifdef TREE_EXAMPLE
+	tree_examples();
+#endif // TREE_EXAMPLE
 
 	return 0;
 }

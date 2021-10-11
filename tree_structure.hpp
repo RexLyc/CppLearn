@@ -16,8 +16,19 @@ namespace lyc_algorithm {
 	};
 
 	enum class NODE_COLOR {
-		RED,BLACK
+		RED, BLACK
 	};
+
+	std::string enum_trans(const NODE_COLOR& e) {
+		switch (e) {
+			case NODE_COLOR::RED:
+				return "RED";
+			case NODE_COLOR::BLACK:
+				return "BLACK";
+			default:
+				return "??";
+		}
+	}
 
 	template<typename T>
 	struct binary_search_tree_node : public binary_tree_node<T> {
@@ -32,34 +43,55 @@ namespace lyc_algorithm {
 		redblack_tree_node(redblack_tree_node* parent, const T& data,NODE_COLOR color=NODE_COLOR::RED)
 			:binary_search_tree_node<T>(parent, nullptr, nullptr, data), color(color) {}
 		NODE_COLOR color;
+
 	};
 
 	template<typename T>
 	binary_tree_node<T>* left_rotate(binary_tree_node<T>* parent) {
-		binary_tree_node<T> right = parent->right;
+		binary_tree_node<T>* right = parent->right;
+		binary_tree_node<T>* parent_parent = parent->parent;
 		if (!right) // can't left_rotate
 			return nullptr;
-		if (right.left) {
-			parent->right = right.left;
-			right.left.parent = parent;
+		parent->right = right->left;
+		if (right->left) {
+			right->left->parent = parent;
 		}
 		parent->parent = right;
-		right.left = parent;
+		right->left = parent;
+		right->parent = parent_parent;
+		if (parent_parent) {
+			if (parent == parent_parent->left) {
+				parent_parent->left = right;
+			}
+			else {
+				parent_parent->right = right;
+			}
+		}
 		return right;
 	}
 
 	template<typename T>
 	binary_tree_node<T>* right_rotate(binary_tree_node<T>* parent) {
 		binary_tree_node<T>* left = parent->left;
+		binary_tree_node<T>* parent_parent = parent->parent;
 		if (!left)
 			return nullptr;
+		parent->left = left->right;
 		if (left->right) {
-			parent->left = left->right;
 			left->right->parent = parent;
 		}
 		parent->parent = left;
 		left->right = parent;
-		return parent;
+		left->parent = parent_parent;
+		if (parent_parent) {
+			if (parent == parent_parent->left) {
+				parent_parent->left = left;
+			}
+			else {
+				parent_parent->right = left;
+			}
+		}
+		return left;
 	}
 
 	template<typename T>
@@ -67,10 +99,10 @@ namespace lyc_algorithm {
 		binary_search_tree_node<T>* current = root;
 		while (current&&current->data!=data) {
 			if (current->data > data) {
-				current = current->left;
+				current = reinterpret_cast<binary_search_tree_node<T>*>(current->left);
 			}
 			else {
-				current = current->right;
+				current = reinterpret_cast<binary_search_tree_node<T>*>(current->right);
 			}
 		}
 		return current;
@@ -107,14 +139,50 @@ namespace lyc_algorithm {
 	}
 
 	template<typename T>
-	void redblack_tree_insert_fix(redblack_tree_node<T>* new_node) {
-
+	void redblack_tree_insert_fix(redblack_tree_node<T>*  root, redblack_tree_node<T>* new_node) {
+		redblack_tree_node<T>* current_node = new_node;
+		while (current_node->parent && reinterpret_cast<redblack_tree_node<T>*>(current_node->parent)->color == NODE_COLOR::RED) {
+			if (current_node->parent == current_node->parent->parent->left) {
+				if (current_node->parent->parent->right && reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent->right)->color == NODE_COLOR::RED) {
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent->right)->color = NODE_COLOR::BLACK;
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent)->color = NODE_COLOR::BLACK;
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent)->color = NODE_COLOR::RED;
+					current_node = reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent);
+				}
+				else if (current_node == current_node->parent->right) {
+					current_node= reinterpret_cast<redblack_tree_node<T>*>(left_rotate(current_node->parent)->left);
+				}
+				else {
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent)->color = NODE_COLOR::BLACK;
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent)->color = NODE_COLOR::RED;
+					right_rotate(current_node->parent->parent);
+				}
+			}
+			else { // mirror
+				if (current_node->parent->parent->left && reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent->left)->color == NODE_COLOR::RED) {
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent->left)->color = NODE_COLOR::BLACK;
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent)->color = NODE_COLOR::BLACK;
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent)->color = NODE_COLOR::RED;
+					current_node = reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent);
+				}
+				else if (current_node == current_node->parent->left) {
+					current_node = reinterpret_cast<redblack_tree_node<T>*>(right_rotate(current_node->parent)->right);
+				}
+				else {
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent)->color = NODE_COLOR::BLACK;
+					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent)->color = NODE_COLOR::RED;
+					left_rotate(current_node->parent->parent);
+				}
+			}
+		}
+		root->color = NODE_COLOR::BLACK;
 	}
 
 	template<typename T>
-	void insert(redblack_tree_node<T>**root, const T& data) {
+	void redblack_tree_insert(redblack_tree_node<T>**root, const T& data) {
 		if (!*root) {
 			*root = new redblack_tree_node<T>(nullptr, data, NODE_COLOR::BLACK);
+			return;
 		}
 		redblack_tree_node<T>* insert_successor = reinterpret_cast<redblack_tree_node<T>*>(successor(*root, data));
 		// to be continue
@@ -129,7 +197,14 @@ namespace lyc_algorithm {
 			else {
 				insert_successor->left = new_node;
 			}
-			redblack_tree_insert_fix(new_node);
+			redblack_tree_insert_fix(*root, new_node);
 		}
+	}
+
+	template<typename T>
+	bool redblack_tree_delete(redblack_tree_node<T>** root, const T& data) {
+		auto node=query(*root, data);
+		if (!node)
+			return false;
 	}
 }
