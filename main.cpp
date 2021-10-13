@@ -203,24 +203,29 @@ void rbtree_delete_test(lyc_algorithm::redblack_tree_node<T>**root, const T&data
 	}
 }
 
+template<typename T>
+void rbtree_insert_test(lyc_algorithm::redblack_tree_node<T>** root, const T& data) {
+	using namespace lyc_algorithm;
+	redblack_tree_insert<T>(root, data);
+	rbtree_print(root);
+}
 
 void tree_examples() {
 	std::cout << "======tree_examples======" << std::endl;
 	using namespace lyc_algorithm;
 	redblack_tree_node<int>* root = nullptr;
-	redblack_tree_insert(&root, 10);
-	redblack_tree_insert(&root, 11);
-	redblack_tree_insert(&root, 1);
-	redblack_tree_insert(&root, 5);
-	redblack_tree_insert(&root, -3);
-	redblack_tree_insert(&root, 0);
-	redblack_tree_insert(&root, 17);
-	redblack_tree_insert(&root, 14);
-	redblack_tree_insert(&root, 13);
-	rbtree_print(&root);
-	redblack_tree_insert(&root, 12);
-	rbtree_print(&root);
-	std::cout << "====rbtree_delete====" << std::endl;
+	rbtree_insert_test(&root, 10);
+	rbtree_insert_test(&root, 11);
+	rbtree_insert_test(&root, 1);
+	rbtree_insert_test(&root, 5);
+	rbtree_insert_test(&root, -3);
+	rbtree_insert_test(&root, 0);
+	rbtree_insert_test(&root, 17);
+	rbtree_insert_test(&root, 14);
+	rbtree_insert_test(&root, 13);
+	rbtree_insert_test(&root, 12);
+
+	//std::cout << "====rbtree_delete====" << std::endl;
 	rbtree_delete_test(&root, 233);
 	rbtree_delete_test(&root, -3);
 	rbtree_delete_test(&root, 10);
@@ -232,6 +237,7 @@ void tree_examples() {
 	rbtree_delete_test(&root, 17);
 	rbtree_delete_test(&root, 14);
 	rbtree_delete_test(&root, 13);
+	rbtree_delete_test(&root, 12);
 }
 #endif // TREE_EXAMPLE
 

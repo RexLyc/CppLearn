@@ -48,10 +48,19 @@ namespace lyc_algorithm {
 			:binary_search_tree_node<T>(parent, new redblack_tree_node(this), new redblack_tree_node(this), data), color(color) ,is_nil(false){}
 
 		redblack_tree_node(redblack_tree_node* parent)
-			:binary_search_tree_node<T>(parent), color(NODE_COLOR::RED) ,is_nil(true) {}
+			:binary_search_tree_node<T>(parent), color(NODE_COLOR::BLACK) ,is_nil(true) {}
 
 		NODE_COLOR color;
 		bool is_nil;
+
+		~redblack_tree_node() {
+			if (binary_tree_node<T>::left && reinterpret_cast<redblack_tree_node<T>*>(binary_tree_node<T>::left)->is_nil) {
+				delete binary_tree_node<T>::left;
+			}
+			if (binary_tree_node<T>::right && reinterpret_cast<redblack_tree_node<T>*>(binary_tree_node<T>::right)->is_nil) {
+				delete binary_tree_node<T>::right;
+			}
+		}
 	};
 
 	template<typename T>
@@ -129,21 +138,18 @@ return current;
 	binary_search_tree_node<T>* successor(binary_search_tree_node<T>* root, const T& data) {
 		// if data not in the tree : find the successor of the last value that is smaller than data
 		// else : find the data node
-		binary_tree_node<T>* current = root;
+		binary_tree_node<T>* current = query(root,data)->right;
 		binary_tree_node<T>* memory = nullptr;
-		while (current && current->times && current->data != data) {
+		while (current && current->times ) {
 			memory = current;
-			if (current->data > data) {
+			if (current->left && current->left->times) {
 				current = current->left;
 			}
 			else {
 				current = current->right;
 			}
 		}
-		if (current && current->times && current->data == data)
-			return reinterpret_cast<binary_search_tree_node<T>*>(current);
-		else
-			return reinterpret_cast<binary_search_tree_node<T>*>(memory);
+		return reinterpret_cast<binary_search_tree_node<T>*>(memory);
 	}
 
 	template<typename T>
@@ -167,6 +173,8 @@ return current;
 				}
 			}
 			else { // mirror
+				std::cout << current_node->data << std::endl;
+				std::cout << enum_trans(reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent->left)->color) << std::endl;
 				if (current_node->parent->parent->left && reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent->left)->color == NODE_COLOR::RED) {
 					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent->parent->left)->color = NODE_COLOR::BLACK;
 					reinterpret_cast<redblack_tree_node<T>*>(current_node->parent)->color = NODE_COLOR::BLACK;
@@ -190,6 +198,11 @@ return current;
 	void redblack_tree_insert(redblack_tree_node<T>** root, const T& data) {
 		if (!*root) {
 			*root = new redblack_tree_node<T>(nullptr, data, NODE_COLOR::BLACK);
+			return;
+		}
+		redblack_tree_node<T>* query_node = reinterpret_cast<redblack_tree_node<T>*>(query(*root, data));
+		if (!query_node->is_nil) {
+			query_node->times++;
 			return;
 		}
 		redblack_tree_node<T>* insert_successor = reinterpret_cast<redblack_tree_node<T>*>(successor(*root, data));
@@ -267,7 +280,7 @@ return current;
 				}
 			}
 		}
-		root->color = NODE_COLOR::BLACK;
+		current_node->color = NODE_COLOR::BLACK;
 		//root->parent = nullptr;
 	}
 
@@ -282,15 +295,17 @@ return current;
 		}
 		// calculate remove node
 		redblack_tree_node<T>* remove_node=nullptr;
-		if (node->left == nullptr || node->right == nullptr) {
+		if (reinterpret_cast<redblack_tree_node<T>*>(node->left)->is_nil || reinterpret_cast<redblack_tree_node<T>*>(node->right)->is_nil) {
 			remove_node = node;
 		}
 		else {
 			remove_node = reinterpret_cast<redblack_tree_node<T>*>(successor(*root, node->data));
+			if (remove_node->is_nil)
+				throw 2333;
 		}
 		// calculate save node
 		redblack_tree_node<T>* save_node = nullptr;
-		if (remove_node->right) {
+		if (!reinterpret_cast<redblack_tree_node<T>*>(remove_node->right)->is_nil) {
 			save_node = reinterpret_cast<redblack_tree_node<T>*>(remove_node->right);
 		}
 		else {
@@ -311,12 +326,17 @@ return current;
 			// remove_node is root
 			*root = save_node;
 		}
+		delete remove_node;
 		redblack_tree_delete_fix(*root, save_node);
 		return true;
 	}
 
 	template<typename T>
 	void rbtree_print(redblack_tree_node<T>** root) {
+		if (*root==nullptr) {
+			std::cout << "rbtree empty" << std::endl;
+			return;
+		}
 		std::cout << "====rbtree start====" << std::endl;
 		std::vector<binary_tree_node<T>*> order_list;
 		inorder<T>(*root, order_list);
@@ -329,4 +349,6 @@ return current;
 		}
 		std::cout << "====rbtree  end ====" << std::endl;
 	}
+
+	// TODO : 关于叶子的处理，没有那么简单，需要完成叶子<->内部节点的双向变换
 }
