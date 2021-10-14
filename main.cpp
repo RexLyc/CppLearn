@@ -238,6 +238,21 @@ void tree_examples() {
 	rbtree_delete_test(&root, 14);
 	rbtree_delete_test(&root, 13);
 	rbtree_delete_test(&root, 12);
+
+	rbtree_insert_test(&root, 4);
+	rbtree_insert_test(&root, 3);
+	rbtree_insert_test(&root, 2);
+	rbtree_insert_test(&root, 4);
+
+	rbtree_delete_test(&root, 3);
+	rbtree_delete_test(&root, 4);
+	rbtree_delete_test(&root, 4);
+
+
+	redblack_tree_node<std::string>* strRoot = nullptr;
+	rbtree_insert_test(&strRoot, std::string("233"));
+	rbtree_insert_test(&strRoot, std::string("666"));
+	rbtree_insert_test(&strRoot, std::string("789"));
 }
 #endif // TREE_EXAMPLE
 
