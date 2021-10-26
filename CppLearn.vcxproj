@@ -145,6 +145,7 @@
     <ClInclude Include="graph_algorithm.hpp" />
     <ClInclude Include="comparison_sort.hpp" />
     <ClInclude Include="graph_structure.hpp" />
+    <ClInclude Include="list_structure.hpp" />
     <ClInclude Include="non_comparison_sort.hpp" />
     <ClInclude Include="order_statistic.hpp" />
     <ClInclude Include="tree_structure.hpp" />
