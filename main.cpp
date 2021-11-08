@@ -256,6 +256,23 @@ void tree_examples() {
 }
 #endif // TREE_EXAMPLE
 
+#define SKIP_LIST_EXAMPLE
+#include"list_structure.hpp"
+void skip_list_examples() {
+	using namespace lyc_algorithm;
+	skip_list<int> int_skip_list;
+	int_skip_list.insert(1);
+	int_skip_list.insert(2);
+	int_skip_list.insert(7);
+	int_skip_list.insert(11);
+	int_skip_list.insert(-7);
+	int_skip_list.insert(0);
+	int_skip_list.insert(7);
+	int_skip_list.insert(1);
+	int_skip_list.insert(100);
+	int_skip_list.insert(6);
+	std::cout << int_skip_list << std::endl;
+}
 
 int main() {
 
@@ -271,5 +288,8 @@ int main() {
 	tree_examples();
 #endif // TREE_EXAMPLE
 
+#ifdef SKIP_LIST_EXAMPLE
+	skip_list_examples();
+#endif
 	return 0;
 }
