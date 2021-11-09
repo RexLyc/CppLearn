@@ -26,9 +26,10 @@ namespace lyc_algorithm {
 	struct skip_list {
 		unsigned int max_level;
 		std::vector<skip_node<T>*> level;
+		skip_node<T>* tail_pointer;
 
 		skip_list(unsigned int max_level = 32)
-			:max_level(max_level)
+			:max_level(max_level),tail_pointer(nullptr)
 		{
 			if (max_level < 1) {
 				throw std::exception("max_level must >= 1");
@@ -41,9 +42,16 @@ namespace lyc_algorithm {
 			auto tempnode = new skip_node<T>();
 			level.back()->right = tempnode;
 			tempnode->left = level.back();
+			if (level.size() > 1) {
+				level.back()->upper = level.at(level.size() - 2);
+				level.back()->upper->lower = level.back();
+				tempnode->upper = tail_pointer;
+				tail_pointer->lower = tempnode;
+			}
+			tail_pointer = tempnode;
 		}
 
-		void make_level_node(skip_node<T>* corner, const T& data, skip_node<T>** lower_node, bool& new_level) {
+		void make_level_node(skip_node<T>* corner, const T& data, skip_node<T>** upper_node, bool& new_level) {
 			static std::uniform_real_distribution<> dis(0, 1);
 			auto seed = std::mt19937(std::chrono::system_clock::now().time_since_epoch().count());
 			auto old_right = corner->right;
@@ -51,11 +59,11 @@ namespace lyc_algorithm {
 			old_right->left = corner->right;
 			corner->right->right = old_right;
 			corner->right->left = corner;
-			if (*lower_node) {
-				corner->right->lower = *lower_node;
-				(*lower_node)->upper = corner->right;
+			if (*upper_node) {
+				corner->right->upper = *upper_node;
+				(*upper_node)->lower = corner->right;
 			}
-			*lower_node = corner->right;
+			*upper_node = corner->right;
 			new_level= dis(seed) < 0.5;
 		}
 
@@ -66,16 +74,17 @@ namespace lyc_algorithm {
 				pos->times++;
 			}
 			else {
-				skip_node<T>* lower_node = nullptr;
+				skip_node<T>* upper_node = nullptr;
 				bool new_level = false;
+				std::reverse(level_corner.begin(), level_corner.end());
 				for (auto& corner : level_corner) {
-					make_level_node(corner, data, &lower_node, new_level);
+					make_level_node(corner, data, &upper_node, new_level);
 					if (!new_level)
 						break;
 				}
 				while (new_level && level.size() < max_level) {
 					make_new_level();
-					make_level_node(level.back(), data, &lower_node, new_level);
+					make_level_node(level.back(), data, &upper_node, new_level);
 				}
 			}
 		}
@@ -126,7 +135,7 @@ namespace lyc_algorithm {
 
 		/*
 		* 返回第一个大于等于data的值
-		* 同时返回查询时每一层转角值
+		* 同时返回查询时自底到上每一层转角值
 		* 不存在则返回最底层的哨兵
 		*/
 		skip_node<T>* lower_bound(const T& data, std::vector<skip_node<T>*>& level_corner) {
@@ -157,7 +166,7 @@ namespace lyc_algorithm {
 				else {
 					level_corner.push_back(current_node->left);
 					if (current_node->upper)
-						current_node = current_node->upper;
+						current_node = current_node->left->upper;
 					else
 						return current_node;
 				}
@@ -168,14 +177,16 @@ namespace lyc_algorithm {
 	template<typename T>
 	std::ostream& operator<<(std::ostream& o, const skip_list<T>& list) {
 		for (auto& level : list.level) {
-			o << "^ <-> ";
-			while (level) {
-				if (level->times) {
-					o << " <-> " << level->value;
+			o << "^ ";
+			auto node = level->right;
+			while (node) {
+				if (node->times) {
+					o << " <-> " << node->value;
 				}
 				else {
-					o << "<-> $";
+					o << " <-> $";
 				}
+				node = node->right;
 			}
 			o << std::endl;
 		}
