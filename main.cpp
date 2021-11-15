@@ -272,7 +272,24 @@ void skip_list_examples() {
 	int_skip_list.insert(100);
 	int_skip_list.insert(6);
 	std::cout << int_skip_list << std::endl;
+	std::cout << "search 6: " << int_skip_list.contain(6)->value << std::endl;
+	std::cout << "search 100: " << int_skip_list.contain(100)->value << std::endl;
+	std::cout << "search -7: " << int_skip_list.contain(-7)->value << std::endl;
+	std::cout << "remove 100: " << int_skip_list.remove(100) << std::endl;
+	std::cout << "remove 1: " << int_skip_list.remove(1) << std::endl;
+	std::cout << "remove 2: " << int_skip_list.remove(2) << std::endl;
+	std::cout << "remove 7: " << int_skip_list.remove(7) << std::endl;
+	std::cout << "remove 11: " << int_skip_list.remove(11) << std::endl;
+	std::cout << "remove -1: " << int_skip_list.remove(-7) << std::endl;
+	std::cout << int_skip_list << std::endl;
+	std::cout << "remove 1: " << int_skip_list.remove(1) << std::endl;
+	std::cout << "remove 7: " << int_skip_list.remove(7) << std::endl;
+	std::cout << "remove 6: " << int_skip_list.remove(6) << std::endl;
+	std::cout << int_skip_list << std::endl;
+	std::cout << "remove 0: " << int_skip_list.remove(0) << std::endl;
+	std::cout << int_skip_list << std::endl;
 }
+
 
 int main() {
 
