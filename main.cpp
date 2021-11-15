@@ -257,6 +257,7 @@ void tree_examples() {
 #endif // TREE_EXAMPLE
 
 #define SKIP_LIST_EXAMPLE
+#ifdef SKIP_LIST_EXAMPLE
 #include"list_structure.hpp"
 void skip_list_examples() {
 	using namespace lyc_algorithm;
@@ -289,6 +290,91 @@ void skip_list_examples() {
 	std::cout << "remove 0: " << int_skip_list.remove(0) << std::endl;
 	std::cout << int_skip_list << std::endl;
 }
+#endif // SKIP_LIST_EXAMPLE
+
+#define FIBO_HEAP_EXAMPLES
+#ifdef FIBO_HEAP_EXAMPLES
+#include"fibo_heap.hpp"
+void fibo_heap_examples() {
+	using namespace lyc_algorithm;
+	fibo_heap<int> fibo_heap_test;
+	fibo_heap_test.insert(1);
+	fibo_heap_test.insert(2);
+	fibo_heap_test.insert(-2);
+	fibo_heap_test.insert(-4);
+	fibo_heap_test.insert(0);
+	fibo_heap_test.insert(12);
+	std::cout << fibo_heap_test;
+	std::cout << "minimum: "<<fibo_heap_test.get_minimum() << std::endl;
+	auto mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	std::cout << fibo_heap_test;
+	delete mini;
+	mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	std::cout << fibo_heap_test;
+	delete mini;
+	mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	std::cout << fibo_heap_test;
+	delete mini;
+	fibo_heap<int> other;
+	other.insert(233);
+	other.insert(666);
+	other.insert(255);
+	other.insert(-1234);
+	fibo_heap_test.merge(other);
+
+	std::cout << fibo_heap_test;
+	mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	delete mini;
+
+
+	std::cout << fibo_heap_test;
+
+	mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	delete mini;
+
+	mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	delete mini;
+
+	mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	delete mini;
+
+	mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	delete mini;
+
+	mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	delete mini;
+
+	mini = fibo_heap_test.extract_minimun();
+	std::cout << "extract minimum: " << mini->value << std::endl;
+	delete mini;
+
+	auto node = new fibo_heap_node<int>(1);
+	fibo_heap_test.insert(node);
+	std::cout << fibo_heap_test.get_minimum() << std::endl;
+	fibo_heap_test.insert(0);
+	fibo_heap_test.insert(-7);
+	fibo_heap_test.insert(6);
+	fibo_heap_test.insert(-2);
+	fibo_heap_test.insert(23);
+	std::cout << fibo_heap_test.get_minimum() << std::endl;
+	std::cout << fibo_heap_test.extract_minimun()->value << std::endl;
+
+	std::cout << fibo_heap_test;
+	fibo_heap_test.decrease_value(node, -1);
+	std::cout << fibo_heap_test.get_minimum() << std::endl;
+
+	std::cout << fibo_heap_test;
+}
+#endif // FIBO_HEAP_EXAMPLES
 
 
 int main() {
@@ -307,6 +393,10 @@ int main() {
 
 #ifdef SKIP_LIST_EXAMPLE
 	skip_list_examples();
+#endif
+
+#ifdef FIBO_HEAP_EXAMPLES
+	fibo_heap_examples();
 #endif
 	return 0;
 }

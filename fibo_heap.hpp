@@ -2,6 +2,8 @@
 #include<exception>
 #include<vector>
 #include<cstdlib>
+#include<iostream>
+#include<queue>
 namespace lyc_algorithm {
 	template<typename T>
 	struct fibo_heap_node {
@@ -29,13 +31,14 @@ namespace lyc_algorithm {
 		fibo_heap_node<T>* min_root;
 		size_t n;
 
+
 		void consolidate() {
 			std::vector<fibo_heap_node<T>*> root_degree_list(log2(n)+1,nullptr);
-			std::vector<fibo_heap_node<T>*> root_list(n,nullptr);
+			std::vector<fibo_heap_node<T>*> root_list;
 			root_list.push_back(min_root);
 			for (auto root_node = min_root->right
 				; root_node != min_root
-				; root_node == root_node->right) {
+				; root_node = root_node->right) {
 				root_list.push_back(root_node);
 			}
 			for (auto& root_node : root_list) {
@@ -46,20 +49,23 @@ namespace lyc_algorithm {
 					auto another_root = root_degree_list[degree];
 					if (current_root->value>another_root->value) {
 						// exchange value
-						std::swap(current_root->value, another_root->value);
+						std::swap(current_root, another_root);
 					}
 					link(current_root, another_root);
 					root_degree_list[degree] = nullptr;
 					degree++;
 				}
-				root_degree_list[degree] = current_root;
+				root_degree_list[current_root->degree] = current_root;
 			}
 			min_root = nullptr;
 			for (size_t i = 0; i != root_degree_list.size(); ++i) {
 				if (root_degree_list[i]){
 					// rebuild root list
+					root_degree_list[i]->parent = nullptr;
 					if (!min_root) {
 						min_root = root_degree_list[i];
+						min_root->left = min_root;
+						min_root->right = min_root;
 					}
 					else {
 						auto left = min_root->left;
@@ -70,6 +76,7 @@ namespace lyc_algorithm {
 					}
 					if(root_degree_list[i]->value < min_root->value) {
 						min_root = root_degree_list[i];
+						//std::cout << "change min root : " << min_root->value << std::endl;
 					}
 				}
 			}
@@ -91,6 +98,7 @@ namespace lyc_algorithm {
 				child->left = child;
 				child->right = child;
 			}
+			child->parent = root;
 			child->mark = false;
 			root->degree++;
 		}
@@ -102,6 +110,10 @@ namespace lyc_algorithm {
 			if (parent->child == child) {
 				parent->child = nullptr;
 			}
+			// sibling adjust
+			child->left->right = child->right;
+			child->right->left = child->left;
+			// move to root list
 			child->parent = nullptr;
 			child->mark = false;
 			auto left = min_root->left;
@@ -128,8 +140,7 @@ namespace lyc_algorithm {
 		fibo_heap()
 			:min_root(nullptr), n(0) {}
 
-		void insert(const T& key) {
-			auto node = new fibo_heap_node<T>(key);
+		void insert(fibo_heap_node<T>* node) {
 			node->left = node;
 			node->right = node;
 			if (min_root) {
@@ -148,6 +159,11 @@ namespace lyc_algorithm {
 			n++;
 		}
 
+		void insert(const T& key) {
+			auto node = new fibo_heap_node<T>(key);
+			insert(node);
+		}
+
 		T get_minimum() {
 			if (!min_root)
 				throw std::exception("empty fibo heap");
@@ -163,7 +179,7 @@ namespace lyc_algorithm {
 				return;
 			}
 			if (!min_root) {
-				min_root = other->min_root;
+				min_root = other.min_root;
 			}
 			else {
 				auto left = min_root->left;
@@ -177,13 +193,14 @@ namespace lyc_algorithm {
 				}
 			}
 			// release 
-			other->min_root = nullptr;
-			other->n = 0;
+			other.min_root = nullptr;
+			n += other.n;
+			other.n = 0;
 		}
 
 		fibo_heap_node<T>* extract_minimun() {
 			auto ret = min_root;
-			if (!ret) {
+			if (ret) {
 				// child of min_root, move to root list
 				auto child = ret->child;
 				if (child) {
@@ -232,5 +249,55 @@ namespace lyc_algorithm {
 			decrease_value(node, min_root->value);
 			extract_minimun();
 		}
+
+		std::vector<fibo_heap_node<T>*> get_root_list() {
+			std::vector<fibo_heap_node<T>*> ret;
+			ret.push_back(min_root);
+			for (auto root = min_root->right; root != min_root; root = root->right) {
+				ret.push_back(root);
+			}
+			return ret;
+		}
+
+		std::vector<fibo_heap_node<T>*> get_child_list(fibo_heap_node<T>* parent) {
+			std::vector<fibo_heap_node<T>*> ret;
+			if (!parent->child)
+				return ret;
+			ret.push_back(parent->child);
+			for (auto child = parent->child->right; child != parent->child; child = child->right) {
+				ret.push_back(child);
+			}
+			return ret;
+		}
+
+		friend std::ostream& operator<<(std::ostream& o, fibo_heap<T> heap) {
+			o << "<<<<<print fibo heap>>>>>" << std::endl << "nums: " << heap.n << std::endl;
+			auto root_list = heap.get_root_list();
+			std::queue<fibo_heap_node<T>*> node_queue;
+			o << "root list: ";
+			for (auto& t : root_list) {
+				o << t->value << " ";
+				auto childs = heap.get_child_list(t);
+				for (auto& t : childs) {
+					node_queue.push(t);
+				}
+			}
+			o << std::endl;
+			while (!node_queue.empty()) {
+				o << " ===== " << std::endl;
+				for (size_t nums = node_queue.size(); nums != 0; nums--) {
+					auto node = node_queue.front();
+					node_queue.pop();
+					o << "node: " << node->value << " parent is: " << node->parent->value << std::endl;
+					auto childs = heap.get_child_list(node);
+					for (auto& t : childs) {
+						node_queue.push(t);
+					}
+				}
+			}
+			o << "<<<<<print over>>>>>" << std::endl << std::endl;
+			return o;
+		}
 	};
+
 }
