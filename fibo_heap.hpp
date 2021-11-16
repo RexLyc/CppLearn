@@ -33,8 +33,10 @@ namespace lyc_algorithm {
 
 
 		void consolidate() {
+			// 临时数组中存储了按度为下标的当前的根表
 			std::vector<fibo_heap_node<T>*> root_degree_list(log2(n)+1,nullptr);
 			std::vector<fibo_heap_node<T>*> root_list;
+			// 由于根表将会变动，因此提前保存
 			root_list.push_back(min_root);
 			for (auto root_node = min_root->right
 				; root_node != min_root
@@ -44,14 +46,16 @@ namespace lyc_algorithm {
 			for (auto& root_node : root_list) {
 				auto current_root = root_node;
 				auto degree = current_root->degree;
-				// merge all the save degree root with current_root
+				// 处理重复度数的根
 				for (; root_degree_list[degree];) {
 					auto another_root = root_degree_list[degree];
 					if (current_root->value>another_root->value) {
-						// exchange value
+						// 交换指针
 						std::swap(current_root, another_root);
 					}
+					// 将较小的作为根
 					link(current_root, another_root);
+					// 清空该度数的根，继续查找更大的度数是否有重复的根
 					root_degree_list[degree] = nullptr;
 					degree++;
 				}
@@ -60,7 +64,7 @@ namespace lyc_algorithm {
 			min_root = nullptr;
 			for (size_t i = 0; i != root_degree_list.size(); ++i) {
 				if (root_degree_list[i]){
-					// rebuild root list
+					// 重建根表
 					root_degree_list[i]->parent = nullptr;
 					if (!min_root) {
 						min_root = root_degree_list[i];
@@ -74,16 +78,16 @@ namespace lyc_algorithm {
 						min_root->left = root_degree_list[i];
 						root_degree_list[i]->right = min_root;
 					}
+					// 记录斐波那契堆的根
 					if(root_degree_list[i]->value < min_root->value) {
 						min_root = root_degree_list[i];
-						//std::cout << "change min root : " << min_root->value << std::endl;
 					}
 				}
 			}
 		}
 
 		void link(fibo_heap_node<T>* root, fibo_heap_node<T>* child) {
- 			// make child to be the child of root
+ 			// 将child作为root的子节点
 			child->left->right = child->right;
 			child->right->left = child->left;
 			if (root->child) {
@@ -110,10 +114,10 @@ namespace lyc_algorithm {
 			if (parent->child == child) {
 				parent->child = nullptr;
 			}
-			// sibling adjust
+			// 调整将删除的子节点的兄弟关系
 			child->left->right = child->right;
 			child->right->left = child->left;
-			// move to root list
+			// 移动子节点到根表
 			child->parent = nullptr;
 			child->mark = false;
 			auto left = min_root->left;
@@ -201,7 +205,7 @@ namespace lyc_algorithm {
 		fibo_heap_node<T>* extract_minimun() {
 			auto ret = min_root;
 			if (ret) {
-				// child of min_root, move to root list
+				// 移动所有子节点到根表
 				auto child = ret->child;
 				if (child) {
 					auto left = ret->left;
@@ -211,10 +215,10 @@ namespace lyc_algorithm {
 					ret->left = child_left;
 					child_left->right = ret;
 				}
-				// delete min_root from root list
+				// 从根表中删除最小节点
 				ret->left->right = ret->right;
 				ret->right->left = ret->left;
-				// adjust
+				// 根据情况调整
 				if (n == 1) {
 					min_root = nullptr;
 				}
@@ -236,6 +240,7 @@ namespace lyc_algorithm {
 			}
 			node->value = new_value;
 			auto parent = node->parent;
+			// 父节点大于当前节点，需要断开、递归向上断开
 			if (parent && parent->value > node->value) {
 				cut(node, parent);
 				cascade_cut(parent);
@@ -250,6 +255,7 @@ namespace lyc_algorithm {
 			extract_minimun();
 		}
 
+		// 实用打印函数
 		std::vector<fibo_heap_node<T>*> get_root_list() {
 			std::vector<fibo_heap_node<T>*> ret;
 			ret.push_back(min_root);
@@ -259,6 +265,7 @@ namespace lyc_algorithm {
 			return ret;
 		}
 
+		// 实用打印函数
 		std::vector<fibo_heap_node<T>*> get_child_list(fibo_heap_node<T>* parent) {
 			std::vector<fibo_heap_node<T>*> ret;
 			if (!parent->child)
